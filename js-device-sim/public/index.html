@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hello Calculator</title>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <script src="angular.min.js"></script>
+    <script src="client.js"></script>
+    <script src="appinsights.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"></script>
+</head>
+<body class="site">
+    <div class="jumbotron">
+        <div class="container">
+            <h2 class="display-5">Hello Device Simulator</h2>
+            <p>This is a sample application for demonstrating multi container applications on Kubernetes in Azure.</p>
+            <p><a class="btn btn-primary btn-lg" href="https://github.com/denniszielke/containers_and_things" role="button">Learn more &raquo;</a></p>
+        </div>
+    </div>
+    <div class="container">
+        <div class="starter-template">
+            <div ng-app="SimulatorApp" ng-controller="SimulatorController" class="btn-group">
+                <form>
+                    <p>
+                        <button class="btn btn-lg btn-success" ng-click="SendStatus(0)" type="button" id="Status0" value="Send Status 0">Send Status 0</button>
+                    </p>
+                    <p>
+                        <button class="btn btn-lg btn-success" ng-click="SendStatus(1)" type="button" id="Status1" value="Send Status 1">Send Status 1</button>
+                    </p>
+                </form>
+                <div class="row">
+                    <h2>Result</h2>
+                    <p class="bg-info">{{ result }}</p>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.container -->
+    
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "js-cloud-device-rec",
+  "version": "1.0.0",
+  "description": "js cloud device receiver",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "dzielke",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv-extended": "^2.0.1",
+    "redis": "^2.8.0",
+    "azure-event-hubs": "^0.0.8"
+  }
+}
