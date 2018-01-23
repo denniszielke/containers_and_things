@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hello Calculator</title>
+    <title>Hello Device simulator</title>
     <link rel="stylesheet" href="bootstrap.min.css">
     <script src="angular.min.js"></script>
     <script src="client.js"></script>
@@ -28,6 +28,21 @@
                     </p>
                     <p>
                         <button class="btn btn-lg btn-success" ng-click="SendStatus(1)" type="button" id="Status1" value="Send Status 1">Send Status 1</button>
+                    </p>
+                    <p>
+                        <label for="lookTemperature">Temperature {{ temperature }}</label>
+                        <input type="range" ng-model="temperature" min="0" max="100" value="10" step="2" width="200">
+                        
+                    </p>
+                    <p>
+                        <label for="lookhumidity">Humidity {{ humidity }}</label>
+                        <input type="range" ng-model="humidity" min="0" max="100" value="10" step="2" width="200">
+                    </p>
+                    <p>
+                        <label>
+                                <input type="checkbox" ng-model="loop" value"loop" checked="true" name="loop">keep posting in a loop</input>
+                        </label>
+                        <button class="btn btn-lg btn-success" ng-click="SendData()" type="button" id="SendData" value="Send Data">Send Data</button>
                     </p>
                 </form>
                 <div class="row">

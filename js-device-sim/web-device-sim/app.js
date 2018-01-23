@@ -6,15 +6,8 @@ const app = express();
 const morgan = require('morgan');
 const request = require('request');
 const OS = require('os');
-const WebSocket = requires('ws');
+const WebSocket = require('ws');
 const config = require('./config');
-const appInsights = require("applicationinsights");
-
-if (config.instrumentationKey){ 
-    appInsights.setup(config.instrumentationKey);
-    appInsights.start();
-    appInsights.defaultClient.context.keys.cloudRole = "simulator";
-}
 
 var Mqtt = require('azure-iot-device-mqtt').Mqtt;
 var DeviceClient = require('azure-iot-device').Client;
@@ -34,27 +27,25 @@ app.get('/ping', function(req, res) {
     res.send('Pong');
 });
 
-app.get('/api/getappinsightskey', function(req, res) {
-    console.log('returned app insights key');
-    if (config.instrumentationKey){ 
-        res.send(config.instrumentationKey);
-    }
-    else{
-        res.send('');
-    }
-});
-
 app.post('/api/sendstatus', function(req, res) {
-    console.log("received trigger request:");
+    console.log("received send status request:");
     console.log(req.headers.devicestatus);
-    if (config.instrumentationKey){ 
-        var startDate = new Date();
-        client.trackEvent( { name: "sendstatus-js-devicesim-call"});
-    }
         
     var data = JSON.stringify({ deviceId: config.deviceId, status: req.headers.devicestatus, host: OS.hostname()});
     var message = new Message(data);
     // message.properties.add('temperatureAlert', (temperature > 30) ? 'true' : 'false');
+    console.log("Sending message: " + message.getData());
+    client.sendEvent(message, printResultFor('send', res));
+   
+});
+
+app.post('/api/senddata', function(req, res) {
+    console.log("received send temperature request:");
+    var temperature = req.headers.temperature;
+    var humidity = req.headers.humidity; 
+    var data = JSON.stringify({ deviceId: config.deviceId, temperature: temperature, humidity: humidity, host: OS.hostname()});
+    var message = new Message(data);
+    message.properties.add('temperatureAlert', (temperature > 10) ? 'true' : 'false');
     console.log("Sending message: " + message.getData());
     client.sendEvent(message, printResultFor('send', res));
    
@@ -84,9 +75,6 @@ var connectCallback = function (err) {
 console.log(config);
 console.log(OS.hostname());
 // Listen
-if (config.instrumentationKey){ 
-    client.trackEvent({ name: "jsdevicesim-initializing"});
-}
 app.listen(config.port);
 console.log('Listening on localhost:'+ config.port);
 
