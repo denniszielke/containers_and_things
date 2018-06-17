@@ -1,5 +1,3 @@
 https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-live-data-visualization-in-web-apps
 
 docker build -t js-device-ui .
-
-docker run -e "Azure.IoT.IoTHub.ConnectionString=HostName=dzthings.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=ts5Ln24rGvIWykaE+7YbLhMKeesdcD/mJiIqtbMyrFA=" -e "Azure.IoT.IoTHub.ConsumerGroup=ui" -e "PORT=8082" js-device-ui
