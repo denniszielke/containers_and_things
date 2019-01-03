@@ -13,12 +13,9 @@ spec:
             - image: danielmeixner/rejectdetector-model:#{Build.BuildId}#
               name: modeltraining#{Build.BuildId}#             
               volumeMounts:                
-                - name: azurefile
-                  # The subPath allows us to mount a subdirectory within the azure file share instead of root
-                  # this is useful so that we can save the logs for each run in a different subdirectory
-                  # instead of overwriting what was done before.
-                  subPath: trainedmodels/trainedmodel#{Build.BuildId}#      # this is a subfolder in azure file share
-                  mountPath: /tmp/tensorflow                # this is the path inside the container
+                - name: azurefile                  
+                  subPath: trainedmodels/trainedmodel#{Build.BuildId}#      
+                  mountPath: /tmp/tensorflow                
           restartPolicy: OnFailure
           volumes:
             - name: azurefile
