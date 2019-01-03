@@ -1,0 +1,26 @@
+apiVersion: kubeflow.org/v1alpha2
+kind: TFJob
+metadata:
+  name: modeltraining
+spec:
+  tfReplicaSpecs:
+    MASTER:
+      replicas: 1
+      template:
+        spec:
+          containers:
+            # image contains model which will be trained here
+            - image: rejectdetector-model:$(Build.BuildId)
+              name: mltrainingimage              
+              volumeMounts:                
+                - name: azurefile
+                  # The subPath allows us to mount a subdirectory within the azure file share instead of root
+                  # this is useful so that we can save the logs for each run in a different subdirectory
+                  # instead of overwriting what was done before.
+                  subPath: trainedmodel_$(Build.BuildId)      # this is a subfolder in azure file share
+                  mountPath: /tmp/tensorflow                # this is the path inside the container
+          restartPolicy: OnFailure
+          volumes:
+            - name: azurefile
+              persistentVolumeClaim:
+                claimName: azurefile
