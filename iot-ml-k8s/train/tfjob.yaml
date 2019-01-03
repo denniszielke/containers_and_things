@@ -1,7 +1,7 @@
 apiVersion: kubeflow.org/v1alpha2
 kind: TFJob
 metadata:
-  name: modeltraining#{Build.BuildId}#
+  name: training#{Build.BuildId}#
 spec:
   tfReplicaSpecs:
     MASTER:
@@ -11,7 +11,7 @@ spec:
           containers:
             # image contains model which will be trained here
             - image: danielmeixner/rejectdetector-model:#{Build.BuildId}#
-              name: modeltraining#{Build.BuildId}#             
+              name: modeltraining             
               volumeMounts:                
                 - name: azurefile                  
                   subPath: trainedmodels/trainedmodel#{Build.BuildId}#      
