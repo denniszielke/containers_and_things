@@ -1,3 +1,4 @@
 FROM tensorflow/serving
-COPY . /models/rejectdetectionmodel
+# RUN mkdir models/mymodel
+COPY . /models
 ENV MODEL_NAME=rejectdetectionmodel
