@@ -1,225 +1,153 @@
-# Copyright 2015 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2016 Google Inc. All Rights Reserved.
 #
-# Licensed under the Apache License, Version 2.0 (the 'License');
+# Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an 'AS IS' BASIS,
+# distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""A simple MNIST classifier which displays summaries in TensorBoard.
 
-This is an unimpressive MNIST model, but it is a good example of using
-tf.name_scope to make a graph legible in the TensorBoard graph explorer, and of
-naming summary tags so that they are grouped meaningfully in TensorBoard.
+#! /usr/bin/env python
+r"""Train and export a simple Softmax Regression TensorFlow model.
 
-It demonstrates the functionality of every TensorBoard dashboard.
+The model is from the TensorFlow "MNIST For ML Beginner" tutorial. This program
+simply follows all its training instructions, and uses TensorFlow SavedModel to
+export the trained model with proper signatures that can be loaded by standard
+tensorflow_model_server.
+
+Usage: mnist_saved_model.py [--training_iteration=x] [--model_version=y] \
+    export_dir
 """
-from __future__ import absolute_import
-from __future__ import division
+
 from __future__ import print_function
 
-import argparse
 import os
 import sys
 
+# This is a placeholder for a Google-internal import.
+
 import tensorflow as tf
 
-from tensorflow.examples.tutorials.mnist import input_data
+import mnist_input_data
 
-FLAGS = None
-
-
-def train():
-  # Import data
-  mnist = input_data.read_data_sets(FLAGS.data_dir,
-                                    one_hot=True,
-                                    fake_data=FLAGS.fake_data)
-
-  # Create a multilayer model.
-
-  # Input placeholders
-  with tf.name_scope('input'):
-    x = tf.placeholder(tf.float32, [None, 784], name='x-input')
-    y_ = tf.placeholder(tf.float32, [None, 10], name='y-input')
-
-  with tf.name_scope('input_reshape'):
-    image_shaped_input = tf.reshape(x, [-1, 28, 28, 1])
-    tf.summary.image('input', image_shaped_input, 10)
-
-  # We can't initialize these variables to 0 - the network will get stuck.
-  def weight_variable(shape):
-    """Create a weight variable with appropriate initialization."""
-    initial = tf.truncated_normal(shape, stddev=0.1)
-    return tf.Variable(initial)
-
-  def bias_variable(shape):
-    """Create a bias variable with appropriate initialization."""
-    initial = tf.constant(0.1, shape=shape)
-    return tf.Variable(initial)
-
-  def variable_summaries(var):
-    """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
-    with tf.name_scope('summaries'):
-      mean = tf.reduce_mean(var)
-      tf.summary.scalar('mean', mean)
-      with tf.name_scope('stddev'):
-        stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
-      tf.summary.scalar('stddev', stddev)
-      tf.summary.scalar('max', tf.reduce_max(var))
-      tf.summary.scalar('min', tf.reduce_min(var))
-      tf.summary.histogram('histogram', var)
-
-  def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.nn.relu):
-    """Reusable code for making a simple neural net layer.
-
-    It does a matrix multiply, bias add, and then uses ReLU to nonlinearize.
-    It also sets up name scoping so that the resultant graph is easy to read,
-    and adds a number of summary ops.
-    """
-    # Adding a name scope ensures logical grouping of the layers in the graph.
-    with tf.name_scope(layer_name):
-      # This Variable will hold the state of the weights for the layer
-      with tf.name_scope('weights'):
-        weights = weight_variable([input_dim, output_dim])
-        variable_summaries(weights)
-      with tf.name_scope('biases'):
-        biases = bias_variable([output_dim])
-        variable_summaries(biases)
-      with tf.name_scope('Wx_plus_b'):
-        preactivate = tf.matmul(input_tensor, weights) + biases
-        tf.summary.histogram('pre_activations', preactivate)
-      activations = act(preactivate, name='activation')
-      tf.summary.histogram('activations', activations)
-      return activations
-
-  hidden1 = nn_layer(x, 784, 500, 'layer1')
-
-  with tf.name_scope('dropout'):
-    keep_prob = tf.placeholder(tf.float32)
-    tf.summary.scalar('dropout_keep_probability', keep_prob)
-    dropped = tf.nn.dropout(hidden1, keep_prob)
-
-  # Do not apply softmax activation yet, see below.
-  y = nn_layer(dropped, 500, 10, 'layer2', act=tf.identity)
-
-  with tf.name_scope('cross_entropy'):
-    # The raw formulation of cross-entropy,
-    #
-    # tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(tf.softmax(y)),
-    #                               reduction_indices=[1]))
-    #
-    # can be numerically unstable.
-    #
-    # So here we use tf.nn.softmax_cross_entropy_with_logits on the
-    # raw outputs of the nn_layer above, and then average across
-    # the batch.
-    diff = tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y)
-    with tf.name_scope('total'):
-      cross_entropy = tf.reduce_mean(diff)
-  tf.summary.scalar('cross_entropy', cross_entropy)
-
-  with tf.name_scope('train'):
-    train_step = tf.train.AdamOptimizer(FLAGS.learning_rate).minimize(
-        cross_entropy)
-
-  with tf.name_scope('accuracy'):
-    with tf.name_scope('correct_prediction'):
-      correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-    with tf.name_scope('accuracy'):
-      accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-  tf.summary.scalar('accuracy', accuracy)
-
-  # Merge all the summaries and write them out to
-  # /tmp/tensorflow/mnist/logs/mnist_with_summaries (by default)
-  merged = tf.summary.merge_all()
-
-  def feed_dict(train):
-    """Make a TensorFlow feed_dict: maps data onto Tensor placeholders."""
-    if train or FLAGS.fake_data:
-      xs, ys = mnist.train.next_batch(100, fake_data=FLAGS.fake_data)
-      k = FLAGS.dropout
-    else:
-      xs, ys = mnist.test.images, mnist.test.labels
-      k = 1.0
-    return {x: xs, y_: ys, keep_prob: k}
-
-  # export model file afterwards; folder has to be mapped in container
-  export_path='/tmp/tensorflow/expmodel'
-  builder = tf.saved_model.builder.SavedModelBuilder(export_path)  
-  print('...exporting to %s ',export_path)
-
-  sess =  tf.InteractiveSession() 
-  train_writer = tf.summary.FileWriter(FLAGS.log_dir + '/train', sess.graph)
-  test_writer = tf.summary.FileWriter(FLAGS.log_dir + '/test')
-  tf.global_variables_initializer().run()
-  # Train the model, and also write summaries.
-  # Every 10th step, measure test-set accuracy, and write test summaries
-  # All other steps, run train_step on training data, & add training summaries
+tf.app.flags.DEFINE_integer('training_iteration', 1000,
+                            'number of training iterations.')
+tf.app.flags.DEFINE_integer('model_version', 1, 'version number of the model.')
+tf.app.flags.DEFINE_string('work_dir', '/tmp', 'Working directory.')
 
 
-  for i in range(FLAGS.max_steps):
-    if i % 10 == 0:  # Record summaries and test-set accuracy
-      summary, acc = sess.run([merged, accuracy], feed_dict=feed_dict(False))
-      test_writer.add_summary(summary, i)
-      
-      print('Accuracy at step %s: %s' % (i, acc))
-    else:  # Record train set summaries, and train
-      if i % 100 == 99:  # Record execution stats
-        run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-        run_metadata = tf.RunMetadata()
-        summary, _ = sess.run([merged, train_step],
-                              feed_dict=feed_dict(True),
-                              options=run_options,
-                              run_metadata=run_metadata)
-        train_writer.add_run_metadata(run_metadata, 'step%03d' % i)
-        train_writer.add_summary(summary, i)
-        print('Adding run metadata for', i)
-      else:  # Record a summary
-        summary, _ = sess.run([merged, train_step], feed_dict=feed_dict(True))
-        train_writer.add_summary(summary, i)
 
-    
-  train_writer.close()    
-  test_writer.close()
-  
-  # save exported model
-  builder.add_meta_graph_and_variables(sess, ["serve"])
-  builder.save()
-  print('...saved model')
+
+
+FLAGS = tf.app.flags.FLAGS
 
 
 def main(_):
-  train()
+#   if len(sys.argv) < 2 or sys.argv[-1].startswith('-'):
+#     print('Usage: mnist_saved_model.py [--training_iteration=x] '
+#           '[--model_version=y] export_dir')
+#     sys.exit(-1)
+#   if FLAGS.training_iteration <= 0:
+#     print('Please specify a positive value for training iteration.')
+#     sys.exit(-1)
+#   if FLAGS.model_version <= 0:
+#     print('Please specify a positive value for version number.')
+#     sys.exit(-1)
+
+  # Train model
+  print('Training model...')
+  mnist = mnist_input_data.read_data_sets(FLAGS.work_dir, one_hot=True)
+  sess = tf.InteractiveSession()
+  serialized_tf_example = tf.placeholder(tf.string, name='tf_example')
+  feature_configs = {'x': tf.FixedLenFeature(shape=[784], dtype=tf.float32),}
+  tf_example = tf.parse_example(serialized_tf_example, feature_configs)
+  x = tf.identity(tf_example['x'], name='x')  # use tf.identity() to assign name
+  y_ = tf.placeholder('float', shape=[None, 10])
+  w = tf.Variable(tf.zeros([784, 10]))
+  b = tf.Variable(tf.zeros([10]))
+  sess.run(tf.global_variables_initializer())
+  y = tf.nn.softmax(tf.matmul(x, w) + b, name='y')
+  cross_entropy = -tf.reduce_sum(y_ * tf.log(y))
+  train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
+  values, indices = tf.nn.top_k(y, 10)
+  table = tf.contrib.lookup.index_to_string_table_from_tensor(
+      tf.constant([str(i) for i in range(10)]))
+  prediction_classes = table.lookup(tf.to_int64(indices))
+  for _ in range(FLAGS.training_iteration):
+    batch = mnist.train.next_batch(50)
+    train_step.run(feed_dict={x: batch[0], y_: batch[1]})
+  correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+  accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
+  print('training accuracy %g' % sess.run(
+      accuracy, feed_dict={
+          x: mnist.test.images,
+          y_: mnist.test.labels
+      }))
+  print('Done training!')
+
+  # Export model
+  # WARNING(break-tutorial-inline-code): The following code snippet is
+  # in-lined in tutorials, please update tutorial documents accordingly
+  # whenever code changes.
+  export_path_base = sys.argv[-1]
+  export_path='/tmp/tensorflow/expmodel'
+#   os.path.join(
+#       tf.compat.as_bytes(export_path_base),
+#       tf.compat.as_bytes(str(FLAGS.model_version)))
+  print('Exporting trained model to', export_path)
+  builder = tf.saved_model.builder.SavedModelBuilder(export_path)
+
+  # Build the signature_def_map.
+  classification_inputs = tf.saved_model.utils.build_tensor_info(
+      serialized_tf_example)
+  classification_outputs_classes = tf.saved_model.utils.build_tensor_info(
+      prediction_classes)
+  classification_outputs_scores = tf.saved_model.utils.build_tensor_info(values)
+
+  classification_signature = (
+      tf.saved_model.signature_def_utils.build_signature_def(
+          inputs={
+              tf.saved_model.signature_constants.CLASSIFY_INPUTS:
+                  classification_inputs
+          },
+          outputs={
+              tf.saved_model.signature_constants.CLASSIFY_OUTPUT_CLASSES:
+                  classification_outputs_classes,
+              tf.saved_model.signature_constants.CLASSIFY_OUTPUT_SCORES:
+                  classification_outputs_scores
+          },
+          method_name=tf.saved_model.signature_constants.CLASSIFY_METHOD_NAME))
+
+  tensor_info_x = tf.saved_model.utils.build_tensor_info(x)
+  tensor_info_y = tf.saved_model.utils.build_tensor_info(y)
+
+  prediction_signature = (
+      tf.saved_model.signature_def_utils.build_signature_def(
+          inputs={'images': tensor_info_x},
+          outputs={'scores': tensor_info_y},
+          method_name=tf.saved_model.signature_constants.PREDICT_METHOD_NAME))
+
+  builder.add_meta_graph_and_variables(
+      sess, [tf.saved_model.tag_constants.SERVING],
+      signature_def_map={
+          'predict_images':
+              prediction_signature,
+          tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY:
+              classification_signature,
+      },
+      main_op=tf.tables_initializer(),
+      strip_default_attrs=True)
+
+  builder.save()
+
+  print('Done exporting!')
 
 
 if __name__ == '__main__':
-  parser = argparse.ArgumentParser()
-  parser.add_argument('--fake_data', nargs='?', const=True, type=bool,
-                      default=False,
-                      help='If true, uses fake data for unit testing.')
-  parser.add_argument('--max_steps', type=int, default=1000,
-                      help='Number of steps to run trainer.')
-  parser.add_argument('--learning_rate', type=float, default=0.001,
-                      help='Initial learning rate')
-  parser.add_argument('--dropout', type=float, default=0.9,
-                      help='Keep probability for training dropout.')
-  parser.add_argument(
-      '--data_dir',
-      type=str,
-      default=os.path.join(os.getenv('TEST_TMPDIR', '/tmp'),
-                           'tensorflow/input_data'),
-      help='Directory for storing input data')
-  parser.add_argument(
-      '--log_dir',
-      type=str,
-      default=os.path.join(os.getenv('TEST_TMPDIR', '/tmp'),
-                           'tensorflow/logs'),
-      help='Summaries log directory')
-  FLAGS, unparsed = parser.parse_known_args()
-  tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+  tf.app.run()
