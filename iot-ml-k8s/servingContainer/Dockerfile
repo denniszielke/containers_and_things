@@ -1,3 +1,3 @@
 FROM tensorflow/serving
-COPY models/mymodel models/mymodel
-ENV MODEL_NAME=mymodel
+COPY . /models/rejectdetectionmodel
+ENV MODEL_NAME=rejectdetectionmodel
