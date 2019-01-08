@@ -9,7 +9,8 @@
     <script src="angular.min.js"></script>
     <script src="client.js"></script>
     <script src="appinsights.js"></script>
-    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"></script>
+    <script src="jquery-3.1.1.slim.min.js"></script>
+    <script src="modernizr-custom.js"></script>
 </head>
 <body class="site">
     <div class="jumbotron">
@@ -41,10 +42,36 @@
                     <p>
                         <label>
                                 <input type="checkbox" ng-model="loop" value"loop" checked="true" name="loop">keep posting in a loop</input>
+                                <input type="hidden" name="imagepost"></input>
                         </label>
                         <button class="btn btn-lg btn-success" ng-click="SendData()" type="button" id="SendData" value="Send Data">Send Data</button>
+                        <button class="btn btn-lg btn-success" ng-click="UploadPhoto()" type="button" id="UploadPhoto" value="Send Photo">Send Photo</button>
                     </p>
                 </form>
+                <div class="row" id="getusermedia" style="display:none;height:100px;">
+                    <p>Click the video to take a snapshot:</p>
+                    <canvas id="canvas" style="display:none;"></canvas>
+                    <video autoplay="true" id="video"></video>
+                    <img id="image" class="img-responsive center-block" src="" style="display:none">
+                    <script src="getusermedia.js"></script>
+                </div>
+                <div class="row" id="nogetusermedia" style="display:none">
+                    <p>Upload the picture of :</p>
+                    <form action="/" method="post" enctype="multipart/form-data">
+                        <input type='file' onchange="readURL(this);" name="userPhoto" accept="image/*" capture>
+                        <input type="file" name="userPhoto" accept="image/*" capture>
+                        <input type="submit" value="Upload Image" name="submit">
+                    </form>
+                    <img id="image" src="">
+                    <script src="fileinput.js"></script>
+                </div>
+                <script>
+                    if(Modernizr.getusermedia) {
+                        document.getElementById("getusermedia").style.display = "inline";
+                    } else {
+                        document.getElementById("nogetusermedia").style.display = "inline";
+                    }            
+                </script>
                 <div class="row">
                     <h2>Result</h2>
                     <p class="bg-info">{{ result }}</p>

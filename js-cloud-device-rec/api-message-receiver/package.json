@@ -10,8 +10,8 @@
   "author": "dzielke",
   "license": "ISC",
   "dependencies": {
-    "dotenv-extended": "^2.0.1",
-    "redis": "^2.8.0",
-    "azure-event-hubs": "^0.0.8"
+    "dotenv-extended": "^2.3.0",
+    "azure-storage": "^2.10.2",
+    "@azure/event-processor-host": "^1.0.6"
   }
 }

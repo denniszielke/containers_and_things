@@ -1,5 +1,5 @@
 FROM node:8-alpine
-ARG basedir="web-device-sim"
+ARG basedir="api-message-receiver"
 WORKDIR /home/app
 # NPM install packages
 COPY ${basedir}/package*.json ./
