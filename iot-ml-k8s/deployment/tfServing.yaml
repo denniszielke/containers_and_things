@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rejectdetector
+  labels:
+    name: rejectdetector    
+spec:
+  selector:
+    name: rejectdetector
+  type: LoadBalancer
+  ports:
+   - port: 8500
+     name: http1
+     targetPort: 8500
+     protocol: TCP
+   - port: 8501
+     name: http2
+     targetPort: 8501
+     protocol: TCP
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: rejectdetectordpl
+spec:
+  replicas: 1
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: rejectdetector        
+    spec:
+      containers:
+      - name: rejectdetector
+        image: danielmeixner/rejectdetector-serving:1783
+        ports:
+          - containerPort: 8500
+            name: http         
+            containerPort: 8501
+            name: http2           
+    
+          
