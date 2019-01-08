@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: rejectdetector
+  name: rejectdetectionmodel
   labels:
-    name: rejectdetector    
+    name: rejectdetectionmodel    
 spec:
   selector:
-    name: rejectdetector
+    name: rejectdetectionmodel
   type: LoadBalancer
   ports:
    - port: 8500
@@ -21,7 +21,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: rejectdetectordpl
+  name: rejectdetectionmodel
 spec:
   replicas: 1
   minReadySeconds: 5
@@ -33,10 +33,10 @@ spec:
   template:
     metadata:
       labels:
-        name: rejectdetector        
+        name: rejectdetectionmodel        
     spec:
       containers:
-      - name: rejectdetector
+      - name: rejectdetectionmodel
         image: danielmeixner/rejectdetector-serving:1783
         ports:
           - containerPort: 8500
