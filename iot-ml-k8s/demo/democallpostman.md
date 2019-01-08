@@ -1,17 +1,36 @@
+# Send image to resnet ML container manually
+Run resnet_serving container image.
+```
 docker run -p 8501:8501 danielmeixner/resnet_serving
+```
 
-
-Katenzfoto laden: 
+## How to create a base64 string from an image
+Load a cat from the web, eg this one:
 Wget https://www.tensorflow.org/images/blogs/serving/cat.jpg
 
-In b64 codieen (ohne Linebreaks)
-Base64 –w 0 cat.jpgbase64 -w 0 cat.jpg > cat.b64.txt
 
+Base64 encode it. Best way to do this is to use base64 command on a ubuntu system. After the follwing command you'll have a (rather lengthy) string without linebreaks in cat.b64.txt. 
+```
+base64 -w 0 cat.jpg > cat.b64.txt
+```
+Copy the content to your clipboard and paste it in the HTTP request. Or use the sampe request below.
 
-In  Postman an localhost
-http://localhost:8501/v1/models/resnet:predict
+## Send HTTP Post 
+You can use  postman to send the request.
+The target URL is like this: http://localhost:8501/v1/models/resnet:predict
 
+The json body you send looks like this:
+```json
+{
+    "signature_name": "predict",
+    "instances": [
+       {"b64":"YOUR BASE64 ENCODED STRING HERE"}
+    ]
+}
+```
+Here's a working sample.
 
+```json
 {
     "signature_name": "predict",
     "instances": [
@@ -20,3 +39,4 @@ http://localhost:8501/v1/models/resnet:predict
     ]
 
 }
+```
