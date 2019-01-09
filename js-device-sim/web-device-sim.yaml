@@ -1,0 +1,42 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: web-device-sim
+spec:
+  replicas: 3  
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1 
+  template:
+    metadata:
+      labels:
+        app: web-device-sim
+    spec:
+      containers:
+      - name: web-device-sim
+        image: denniszielke/web-device-sim:latest      
+        ports:
+        - containerPort: 80
+        env: 
+          - name: "PORT"
+            value: "80"
+        imagePullPolicy: Always   
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-device-sim
+  labels:
+    app: web-device-sim
+spec:
+  selector:
+    app: web-device-sim 
+  type: LoadBalancer
+  ports:
+   - port: 80
+     name: http
+     targetPort: 80
+     protocol: TCP

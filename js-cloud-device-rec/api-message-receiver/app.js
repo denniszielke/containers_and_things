@@ -24,29 +24,35 @@ async function fileposter(blob) {
     const blobService = storage.createBlobService(config.storageConnectionString);
     console.log("downloading ..." + blob);
     
-    blobService.getBlobToStream('dev1upload', config.partitionId +'/'+ blob , fs.createWriteStream(blob), function(error, result, response) {
+    blobService.getBlobToStream('dev1upload', blob , fs.createWriteStream(blob), function(error, result, response) {
         if (!error) {
           console.log("error while downloading:");
           console.log(result);
         }
         else{
-          console.log("posting data to serving api:");
-          var formData = {
-            received: new Date().toLocaleString()
-          };
-          var options = { 
-              'url': config.endpoint,
-              'form': formData,
-              'headers': {
-                'source': 'zero'
-              }
-          }; 
-          
-          request.post(options, function(err, res, body) {
-            console.log(body);
-          });
 
-          console.log(error);
+          try{
+            console.log("posting data to serving api:");
+            var formData = {
+              received: new Date().toLocaleString()
+            };
+            var options = { 
+                'url': config.endpoint,
+                'form': formData,
+                'headers': {
+                  'source': 'zero'
+                }
+            }; 
+            
+            request.post(options, function(err, res, body) {
+              console.log(body);
+            });
+
+            console.log(error);
+          }catch(e){
+            console.log("error processing");
+            console.log(e);
+          }
         }
       });
 }

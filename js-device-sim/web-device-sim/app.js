@@ -24,16 +24,21 @@ const server = http
 
 // Routes
 app.get('/ping', function(req, res) {
-    client.trackEvent({ name: 'ping-js-devicesim-received' });
     console.log('received ping');
+    res.send('Pong');
+});
+
+app.get('/api/post', function(req, res) {
+    console.log('received post');
     res.send('Pong');
 });
 
 app.post('/api/upload', function(req, res) {
     const imageEncoded = req.headers.image;
-    console.log("stream length: " + imageEncoded.length);
+    const name = req.headers.name || "azureuser";
+    console.log("stream length for " +  name + ":" + imageEncoded.length);
 
-    var filename = "out_"+ Math.floor(Math.random() * Math.floor(100))  +".jpeg";
+    var filename = "out_"+ Math.floor(Math.random() * Math.floor(10000))  +".jpeg";
 
     fs.open(filename, "a+",(err, fd) => {
         // Write our data
@@ -47,23 +52,21 @@ app.post('/api/upload', function(req, res) {
     });
 
     console.log("written file to " + filename);
-    var waitTill = new Date(new Date().getTime() + 1000);
-    while(waitTill > new Date()){}
 
     try{
         fs.stat(filename, function (err, stats) {
             const rr = fs.createReadStream(filename);
-        
+            
             client.uploadToBlob(filename, rr, imageEncoded.length, function (err) {
                 if (err) {
                     console.error('Error uploading file: ' + err.toString());
-                    // res.send('Error');
+                    res.send('Error');
                 } else {
                     console.log('File uploaded');
-                    var data = JSON.stringify({ deviceId: config.deviceId, status: "1", host: OS.hostname(), blob: filename});
+                    var data = JSON.stringify({ deviceId: config.deviceId, name: name, status: "1", host: OS.hostname(), blob: config.deviceId + "/" + filename});
                     var message = new Message(data);
                     console.log("Sending message: " + message.getData());
-                    client.sendEvent(message, printResultFor('send', res));
+                    client.sendEvent(message, printResultFor('send user:' + name, res));
                 }
             });
         });
@@ -71,7 +74,7 @@ app.post('/api/upload', function(req, res) {
         console.log(e);
     }
 
-    res.send("ok");
+   
 });
 
 app.post('/api/sendstatus', function(req, res) {
@@ -107,12 +110,12 @@ app.post('/api/senddata', function(req, res) {
 function printResultFor(op, response) {
     return function printResult(err, res) {
         if (err) {
-            console.log(op + ' error: ' + err.toString());
-            response.send(op + ' error: ' + err.toString());
+            console.log(op + ', error: ' + err.toString());
+            response.send(op + ', error: ' + err.toString());
         }
         if (res) {
-            console.log(op + ' status: ' + res.constructor.name);
-            response.send(op + ' status: ' + res.constructor.name);
+            console.log(op + ', status: ' + res.constructor.name);
+            response.send(op + ', status: ' + res.constructor.name);
         }
     };
 }

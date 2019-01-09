@@ -7,7 +7,8 @@ if (navigator.getUserMedia) {
 }
  
 function handleVideo(stream) {
-    video.src = window.URL.createObjectURL(stream);
+    // video.src = window.webkitURL.createObjectURL(stream);
+    video.srcObject=stream;
 }
  
 function videoError(e) {
@@ -20,11 +21,20 @@ var ctx = canvas.getContext('2d');
 var localMediaStream = null;
 
 function snapshot() {
-    if (localMediaStream) {
+    console.log("created snapshot");
+    if (true) {
         canvas.width = video.clientWidth
         canvas.height = video.clientHeight
         ctx.drawImage(video, 0, 0);
-        document.querySelector('#image').src = canvas.toDataURL('image/jpeg', 0.15);
+        document.querySelector('#image').src = canvas.toDataURL('image/jpeg', 0.2);
+        // {
+        //     format: 'image/png',
+        //     left: 0,
+        //     top: 0,
+        //     width: 100,
+        //     height: 50
+        // });
+
         document.querySelector('#video').style.display = "none";
         document.querySelector('#image').style.display = "inline";
     }
@@ -33,7 +43,7 @@ function snapshot() {
   video.addEventListener('click', snapshot, false);
   
   // Not showing vendor prefixes or code that works cross-browser.
-  navigator.getUserMedia({video: true}, function(stream) {
-    video.src = window.URL.createObjectURL(stream);
-    localMediaStream = stream;
-  }, videoError);
+//   navigator.getUserMedia({video: true}, function(stream) {
+//     video.src = window.URL.createObjectURL(stream);
+//     localMediaStream = stream;
+//   }, videoError);

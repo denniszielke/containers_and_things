@@ -27,18 +27,20 @@ angular.module('SimulatorApp', [])
                     });
             };
 
-            $scope.UploadPhoto = function () {
+            $scope.UploadPhoto = function (name) {
+                console.log("sending: " + name);
                 var postUrl = apiUrl + 'upload';
                 console.log(document.querySelector('#image').src);
                 var imageEncoding = "" + document.querySelector('#image').src;
                 var imageOutput = imageEncoding.replace('data:image/jpeg;base64,', '');
-
+                console.log("posting: " + imageOutput.length);
                 var config = {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;',
                         'image': imageOutput
                     }
                 };
+                console.log(config);
                 $http.post(postUrl, { }, config)
                     .success(function (response) { 
                         $scope.result = response;
