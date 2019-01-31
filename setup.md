@@ -20,7 +20,7 @@ az storage account create --resource-group $AZURE_GROUP --name $FILE_STORAGE_NAM
 
 1. create IoT Hub instance
 ```
-az group create -n $IOT_GROUP -l $LOCATION
+az group create -n $AZURE_GROUP -l $LOCATION
 
 az iot hub create --resource-group $AZURE_GROUP --name $IOT_HUB_NAME --sku F1 --location $LOCATION
 ```
