@@ -26,7 +26,7 @@ function snapshot() {
         canvas.width = video.clientWidth
         canvas.height = video.clientHeight
         ctx.drawImage(video, 0, 0);
-        document.querySelector('#image').src = canvas.toDataURL('image/jpeg', 0.2);
+        document.querySelector('#image').src = canvas.toDataURL('image/jpeg', 0.5);
         // {
         //     format: 'image/png',
         //     left: 0,
