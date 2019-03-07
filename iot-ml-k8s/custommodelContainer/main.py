@@ -62,36 +62,39 @@ def main(_):
 
   # Train model
   print('Training model...')
+
+  # init
+  nr_of_px = 784
+  nr_of_classes = 10
+
+  # loading data
   mnist = mnist_input_data.read_data_sets(FLAGS.work_dir, one_hot=True)
+
+
   sess = tf.InteractiveSession()
   serialized_tf_example = tf.placeholder(tf.string, name='tf_example')
-  feature_configs = {'x': tf.FixedLenFeature(shape=[784], dtype=tf.float32),}
+  feature_configs = {'x': tf.FixedLenFeature(shape=[nr_of_px], dtype=tf.float32),}
   tf_example = tf.parse_example(serialized_tf_example, feature_configs)
-
-
   x = tf.identity(tf_example['x'], name='x')  # use tf.identity() to assign name
-  y_ = tf.placeholder('float', shape=[None, 10])
-
-  #weight
-  w = tf.Variable(tf.zeros([784, 10]))
-
-  #bias
-  b = tf.Variable(tf.zeros([10]))
-
+  
+  y_ = tf.placeholder('float', shape=[None, nr_of_classes])
+  w = tf.Variable(tf.zeros([nr_of_px, nr_of_classes]))
+  b = tf.Variable(tf.zeros([nr_of_classes]))
+  
   sess.run(tf.global_variables_initializer())
+  
+  #define classifier function y
   y = tf.nn.softmax(tf.matmul(x, w) + b, name='y')
   cross_entropy = -tf.reduce_sum(y_ * tf.log(y))
   train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
-  values, indices = tf.nn.top_k(y, 10)
-  table = tf.contrib.lookup.index_to_string_table_from_tensor(
-      tf.constant([str(i) for i in range(10)]))
   
+  values, indices = tf.nn.top_k(y, nr_of_classes)
+  table = tf.contrib.lookup.index_to_string_table_from_tensor(tf.constant([str(i) for i in range(nr_of_classes)]))
   prediction_classes = table.lookup(tf.to_int64(indices))
-  
+
   for _ in range(FLAGS.training_iteration):
     batch = mnist.train.next_batch(50)
     train_step.run(feed_dict={x: batch[0], y_: batch[1]})
-  # compares arrays with computed vals and array with correct vals
   correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
   accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
   print('training accuracy %g' % sess.run(

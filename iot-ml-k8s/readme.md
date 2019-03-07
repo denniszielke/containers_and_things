@@ -14,7 +14,6 @@ builder.add_meta_graph_and_variables(sess, ["serve"])
   print('saved')
 ```
 
-
 1. CI will wrap file into a container.
 1. Wrap this file into a tf container (c-training) using the tensorflow base image
 ```
