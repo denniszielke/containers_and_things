@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Image2Rgb": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "sqldb_connection": "someval"
+      }
+    }
+  }
+}
