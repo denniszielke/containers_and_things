@@ -16,8 +16,7 @@
     <div class="jumbotron">
         <div class="container">
             <h2 class="display-5">Hello Device Simulator</h2>
-            <p>This is a sample application for demonstrating multi container applications on Kubernetes in Azure.</p>
-            <p><a class="btn btn-primary btn-lg" href="https://github.com/denniszielke/containers_and_things" role="button">Learn more &raquo;</a></p>
+            <p>This is a sample application for demonstrating multi container applications for IoT on Kubernetes in Azure. <a href="https://github.com/denniszielke/containers_and_things">Learn more &raquo;</a></p>
         </div>
     </div>
     <div class="container">
@@ -26,30 +25,33 @@
                 <form>
                     <p>
                         <button class="btn btn-lg btn-success" ng-click="SendStatus(0)" type="button" id="Status0" value="Send Status 0">Send Status 0</button>
-                    </p>
-                    <p>
                         <button class="btn btn-lg btn-success" ng-click="SendStatus(1)" type="button" id="Status1" value="Send Status 1">Send Status 1</button>
+                        <label>
+                            <input type="checkbox" ng-model="loop" value"loop" checked="true" name="loop">keep posting in a loop</input>
+                    </label>
+
+                    <button class="btn btn-lg btn-success" ng-click="SendData()" type="button" id="SendData" value="Send Data">Send Data</button>
+                    <button class="btn btn-lg btn-success" ng-click="UploadPhoto(name)" type="button" id="UploadPhoto" value="Send Photo">Send Photo</button>
                     </p>
                     <p>
-                        <label for="lookTemperature">Temperature {{ temperature }}</label>
+                        <label for="lookTemperature">Temperature: {{ temperature }}</label>
                         <input type="range" ng-model="temperature" min="0" max="100" value="10" step="2" width="200">
                         
                     </p>
                     <p>
-                        <label for="lookhumidity">Humidity {{ humidity }}</label>
+                        <label for="lookhumidity">Humidity: {{ humidity }}</label>
                         <input type="range" ng-model="humidity" min="0" max="100" value="10" step="2" width="200">
                     </p>
                     <p>
-                        <label>
-                                <input type="checkbox" ng-model="loop" value"loop" checked="true" name="loop">keep posting in a loop</input>
-                                <input type="hidden" name="imagepost"></input>
-                        </label>
-                        <button class="btn btn-lg btn-success" ng-click="SendData()" type="button" id="SendData" value="Send Data">Send Data</button>
-                        <button class="btn btn-lg btn-success" ng-click="UploadPhoto()" type="button" id="UploadPhoto" value="Send Photo">Send Photo</button>
+                        <label for="instancename" style="width:200px">Name: {{ name }}</label>
+                        <input type="text" ng-model="name" maxlength="16" value="azureuser" width="300">
                     </p>
                 </form>
+                <div class="row">
+                    <h2>Result</h2>
+                    <p class="bg-info">{{ result }}</p>
+                </div>
                 <div class="row" id="getusermedia" style="display:none;height:100px;">
-                    <p>Click the video to take a snapshot:</p>
                     <canvas id="canvas" style="display:none;"></canvas>
                     <video autoplay="true" id="video"></video>
                     <img id="image" class="img-responsive center-block" src="" style="display:none">
@@ -72,10 +74,7 @@
                         document.getElementById("nogetusermedia").style.display = "inline";
                     }            
                 </script>
-                <div class="row">
-                    <h2>Result</h2>
-                    <p class="bg-info">{{ result }}</p>
-                </div>
+                <p>Click the video to take a snapshot:</p>
             </div>
         </div>
 

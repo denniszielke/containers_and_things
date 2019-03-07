@@ -12,6 +12,7 @@ package-lock.json
 logs
 *.log
 npm-debug.log*
+*.jpeg
 
 # Runtime data
 pids
