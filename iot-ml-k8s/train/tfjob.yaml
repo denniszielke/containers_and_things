@@ -10,7 +10,7 @@ spec:
         spec:
           containers:
             # image contains model which will be trained here
-            - image: danielmeixner/rejectdetector-model:#{Build.BuildId}#
+            - image: danielmeixner/#{modelname}#:#{Build.BuildId}#
               name: tensorflow             
               volumeMounts:                
                 - name: azurefile                  
